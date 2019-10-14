@@ -33,7 +33,7 @@ public class Process implements Runnable {
             this.clock = b.getEstampille();
         }
         this.clock++;
-        System.out.println("new clock: " + this.clock);
+        System.out.println(this.thread.getName() + " new clock: " + this.clock);
     }
 
     @Subscribe
@@ -46,7 +46,7 @@ public class Process implements Runnable {
             }
             this.clock++;
 
-            System.out.println("new clock: " + this.clock);
+            System.out.println(this.thread.getName() + " new clock: " + this.clock);
         }
     }
 
@@ -65,18 +65,18 @@ public class Process implements Runnable {
     public void run() {
         int loop = 0;
 
-        System.out.println(Thread.currentThread().getName() + " id :" + this.id);
+        // System.out.println(Thread.currentThread().getName() + " id :" + this.id);
 
         while (this.alive) {
-            System.out.println(Thread.currentThread().getName() + " Loop : " + loop);
+            // System.out.println(Thread.currentThread().getName() + " Loop : " + loop);
             try {
                 Thread.sleep(500);
 
                 if (Thread.currentThread().getName().equals("P1")) {
                     // LamportMessage b1 = new LamportMessage("ga", ++this.clock);
                     // LamportMessage b2 = new LamportMessage("bu", ++this.clock);
-//                     BroadcastMessage b1 = new BroadcastMessage("ga", ++this.clock, Thread.currentThread().getName());
-//                     BroadcastMessage b2 = new BroadcastMessage("bu", ++this.clock, Thread.currentThread().getName());
+                    //  BroadcastMessage b1 = new BroadcastMessage("ga", ++this.clock, Thread.currentThread().getName());
+                    //  BroadcastMessage b2 = new BroadcastMessage("bu", ++this.clock, Thread.currentThread().getName());
                     DedicatedMessage b1 = new DedicatedMessage("ga", ++this.clock, "P1");
                     DedicatedMessage b2 = new DedicatedMessage("bu", ++this.clock, "P2");
                     System.out.println(Thread.currentThread().getName() + " send : " + b1.getMachin() +
