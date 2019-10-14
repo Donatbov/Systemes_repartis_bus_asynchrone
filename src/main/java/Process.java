@@ -29,11 +29,10 @@ public class Process implements Runnable {
     public void onTrucSurBus(LamportMessage b) {
         System.out.println(Thread.currentThread().getName() + " receives: " + b.getMachin() + " for "
                 + this.thread.getName() + " and estampille: " + b.getEstampille());
-        if (b.getEstampille() > this.clock + 1) {
+        if (b.getEstampille() > this.clock) {
             this.clock = b.getEstampille();
-        } else {
-            this.clock++;
         }
+        this.clock++;
         System.out.println("new clock: " + this.clock);
     }
 
