@@ -41,11 +41,11 @@ public class Process implements Runnable {
         if (!b.getSender().equals(this.thread.getName())) {
             System.out.println(this.thread.getName() + " receives: " + b.getMachin() + " from "
                     + b.getSender() + " and estampille: " + b.getEstampille());
-            if (b.getEstampille() > this.clock + 1) {
+            if (b.getEstampille() > this.clock) {
                 this.clock = b.getEstampille();
-            } else {
-                this.clock++;
             }
+            this.clock++;
+
             System.out.println("new clock: " + this.clock);
         }
     }
@@ -54,12 +54,11 @@ public class Process implements Runnable {
     public void onDedicatedMessageOnBus(DedicatedMessage b) {
         if (b.getRecipient().equals(this.thread.getName())) {
             System.out.println(this.thread.getName() + " get " + b.getMachin() + " with estampille " + b.getEstampille());
-            if (b.getEstampille() > this.clock + 1) {
+            if (b.getEstampille() > this.clock) {
                 this.clock = b.getEstampille();
-            } else {
-                this.clock++;
             }
-            System.out.println("new clock: " + this.clock);
+            this.clock++;
+            System.out.println(this.thread.getName() + " new clock: " + this.clock);
         }
     }
 
@@ -74,16 +73,18 @@ public class Process implements Runnable {
                 Thread.sleep(500);
 
                 if (Thread.currentThread().getName().equals("P1")) {
-                    this.clock++;
-                    // LamportMessage b1 = new LamportMessage("ga", this.clock);
-                    // LamportMessage b2 = new LamportMessage("bu", this.clock);
-                     BroadcastMessage b1 = new BroadcastMessage("ga", this.clock, Thread.currentThread().getName());
-                     BroadcastMessage b2 = new BroadcastMessage("bu", this.clock, Thread.currentThread().getName());
-//                    DedicatedMessage b1 = new DedicatedMessage("ga", this.clock, "P1");
-//                    DedicatedMessage b2 = new DedicatedMessage("bu", this.clock, "P2");
+                    // LamportMessage b1 = new LamportMessage("ga", ++this.clock);
+                    // LamportMessage b2 = new LamportMessage("bu", ++this.clock);
+//                     BroadcastMessage b1 = new BroadcastMessage("ga", ++this.clock, Thread.currentThread().getName());
+//                     BroadcastMessage b2 = new BroadcastMessage("bu", ++this.clock, Thread.currentThread().getName());
+                    DedicatedMessage b1 = new DedicatedMessage("ga", ++this.clock, "P1");
+                    DedicatedMessage b2 = new DedicatedMessage("bu", ++this.clock, "P2");
                     System.out.println(Thread.currentThread().getName() + " send : " + b1.getMachin() +
                             " with lamport clock : " + b1.getEstampille());
+                    System.out.println(Thread.currentThread().getName() + " send : " + b2.getMachin() +
+                            " with lamport clock : " + b2.getEstampille());
                     bus.postEvent(b1);
+                    bus.postEvent(b2);
                 }
 
             } catch (Exception e) {
