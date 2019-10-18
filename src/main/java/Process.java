@@ -69,12 +69,12 @@ public class Process implements Runnable {
     }
 
     @Subscribe
-    public void onTokenOnBus (Token t) {
-
+    public void onTokenOnBus (Token t) throws InterruptedException {
         if (t.getRecipient().equals(this.thread.getName())) {
             if (this.attendJeton) {
                 this.isInSectionCritique = true; // this.thread entre en section critique
                 while (isInSectionCritique) {
+                    Thread.sleep(50);
                     // on attend de ne plus etre en section critique
                 }
             }
@@ -93,12 +93,12 @@ public class Process implements Runnable {
         return -1;
     }
 
-    private void request () {
+    private void request () throws InterruptedException {
         this.attendJeton = true;
         while (!this.isInSectionCritique){
             // on attend
+            Thread.sleep(50);
         }
-        System.out.println("test");
     }
 
     private void release () {
