@@ -9,8 +9,11 @@ public class Process implements Runnable {
     private static int nbProcess = 0;
     private int id = Process.nbProcess++;
     private int clock;
+    private String[] ring;
+    private boolean isInSectionCritique;
+    private boolean attendJeton;
 
-    public Process(String name) {
+    public Process(String name, String[] ring) {
 
         this.bus = EventBusService.getInstance();
         this.bus.registerSubscriber(this); // Auto enregistrement sur le bus afin que les methodes "@Subscribe" soient invoquees automatiquement.
@@ -19,6 +22,9 @@ public class Process implements Runnable {
         this.thread = new Thread(this);
         this.thread.setName(name);
         this.clock = 0;
+        this.ring = ring;
+        this.isInSectionCritique = false;
+        this.attendJeton = false;
         this.alive = true;
         this.dead = false;
         this.thread.start();
@@ -62,6 +68,46 @@ public class Process implements Runnable {
         }
     }
 
+    @Subscribe
+    public void onTokenOnBus (Token t) {
+
+        if (t.getRecipient().equals(this.thread.getName())) {
+            if (this.attendJeton) {
+                this.isInSectionCritique = true; // this.thread entre en section critique
+                while (isInSectionCritique) {
+                    // on attend de ne plus etre en section critique
+                }
+            }
+            t.setRecipient(this.ring[(this.indexOnBus() + 1) % this.ring.length]);
+            bus.postEvent(t);
+        }
+    }
+
+    private int indexOnBus () {
+        for (int i = 0; i < this.ring.length; ++i) {
+            if (this.ring[i].equals(this.thread.getName())) {
+                return i;
+            }
+        }
+        System.err.println("l'index du processus local n'existe pas dans le ring");
+        return -1;
+    }
+
+    private void request () {
+        this.attendJeton = true;
+        while (!this.isInSectionCritique){
+            // on attend
+        }
+        System.out.println("test");
+    }
+
+    private void release () {
+        this.attendJeton = false;
+        // On sort de la section critique
+        this.isInSectionCritique = false;
+    }
+
+
     public void run() {
         int loop = 0;
 
@@ -70,23 +116,11 @@ public class Process implements Runnable {
         while (this.alive) {
             // System.out.println(Thread.currentThread().getName() + " Loop : " + loop);
             try {
+                this.request();  // bloquant jusqu'à l'obtention du token
+                // Do some stuff
                 Thread.sleep(500);
-
-                if (Thread.currentThread().getName().equals("P1")) {
-                    // LamportMessage b1 = new LamportMessage("ga", ++this.clock);
-                    // LamportMessage b2 = new LamportMessage("bu", ++this.clock);
-                    //  BroadcastMessage b1 = new BroadcastMessage("ga", ++this.clock, Thread.currentThread().getName());
-                    //  BroadcastMessage b2 = new BroadcastMessage("bu", ++this.clock, Thread.currentThread().getName());
-                    DedicatedMessage b1 = new DedicatedMessage("ga", ++this.clock, "P1");
-                    DedicatedMessage b2 = new DedicatedMessage("bu", ++this.clock, "P2");
-                    System.out.println(Thread.currentThread().getName() + " send : " + b1.getMachin() +
-                            " with lamport clock : " + b1.getEstampille());
-                    System.out.println(Thread.currentThread().getName() + " send : " + b2.getMachin() +
-                            " with lamport clock : " + b2.getEstampille());
-                    bus.postEvent(b1);
-                    bus.postEvent(b2);
-                }
-
+                System.out.println(this.thread.getName() + " est en section critique");
+                this.release(); // revoie le token au prochain process sur l'anneau
             } catch (Exception e) {
                 e.printStackTrace();
             }
